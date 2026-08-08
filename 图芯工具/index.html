@@ -1,1 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>图芯工具</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --primary-color: #6c5ce7;
+    --primary-light: #7e6ff8;
+    --primary-dark: #5a4bd6;
+    --secondary-color: #9c88ff;
+    --text-color: #2d2d3a;
+    --text-light: #6b6b7a;
+    --border-color: #b8a8ee;
+    --card-bg: #ffffff;
+    --success-color: #00b894;
+    --danger-color: #d63031;
+    --info-color: #0984e3;
+    --background: #f5f4fa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+    width: 100%; min-height: 100%;
+    background: var(--background);
+    color: var(--text-color);
+    font-family: 'Poppins', 'Microsoft YaHei', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+body { padding: 20px; display: flex; align-items: flex-start; justify-content: center; }
+.container { width: 100%; max-width: 520px; }
+.card {
+    background: var(--card-bg);
+    border-radius: 0;
+    padding: 18px;
+    box-shadow: 3px 3px 0px 0px rgba(90, 75, 214, 0.85);
+    border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+.card:hover { box-shadow: 4px 4px 0px 0px #5a4bd6; }
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+h2 {
+    color: var(--primary-light);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+h2 i { font-size: 1.1rem; color: var(--primary-color); }
+.cache-hint {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-top: 4px;
+    font-style: normal;
+    opacity: 0.8;
+}
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.95rem;
+    gap: 8px;
+    box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.btn:hover { background: var(--primary-dark); box-shadow: 3px 3px 0px 0px rgba(90, 75, 214, 0.85); }
+.btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.btn-primary { background: var(--primary-color); }
+.message {
+    position: fixed;
+    top: 45px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    z-index: 99999;
+    white-space: nowrap;
+    animation: messageFadeIn 0.3s ease;
+}
+.message-success { background: var(--success-color); }
+.message-danger { background: var(--danger-color); }
+.message-info { background: var(--info-color); }
+@keyframes messageFadeIn {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+</style>
+</head>
+<body>
+<div class="container">
 
+<section class="card" style="margin-top: 0; padding-top: 8px;">
+    <div class="section-header">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div>
+                <h2 style="margin-bottom: 0;">
+                    <i class="fas fa-microchip"></i>
+                    图芯工具
+                </h2>
+                <div class="cache-hint" style="margin-top: 4px;">将图片/视频转换成甜瓜芯片</div>
+            </div>
+            <button class="btn btn-primary" id="modeToggle" style="padding: 6px 14px; font-size: 13px; white-space: nowrap;">
+                <i class="fas fa-video"></i> 视频转换
+            </button>
+        </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 15px;">
+        <div style="width: 100%; min-height: 160px; background: rgba(240, 240, 245, 0.8); border: 2px dashed var(--border-color); border-radius: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+            <div id="ph" style="text-align: center; color: var(--text-light); padding: 28px 16px;">
+                <i class="fas fa-image" style="font-size: 38px; display: block; margin-bottom: 8px;"></i>
+                <span style="font-size: 13px;">尚未选择图片</span>
+            </div>
+            <img id="preview" style="max-width: 100%; max-height: 240px; object-fit: contain; display: none;">
+        </div>
+
+        <div>
+            <button class="btn btn-primary" id="pickBtn" style="width: 100%;">
+                <i class="fas fa-folder-open"></i> 选择图片
+            </button>
+            <input type="file" id="fileInp" accept="image/*" style="display: none;">
+        </div>
+
+        <div>
+            <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">宽度</label>
+                    <input type="number" id="wInp" value="64" min="1" max="256" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+                    <div style="font-size: 11px; color: var(--text-light); margin-top: 3px; text-align: center;">1 ~ 256</div>
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">高度</label>
+                    <input type="number" id="hInp" value="64" min="1" max="256" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+                    <div style="font-size: 11px; color: var(--text-light); margin-top: 3px; text-align: center;">1 ~ 256</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">自定义文件名</label>
+                <input type="text" id="nameInp" placeholder="留空自动生成" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 6px; font-weight: 500;">设置封面</label>
+                <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                    <div id="radioDefault" style="flex: 1; display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(240,240,245,0.6); border: 2px solid var(--border-color); cursor: pointer; box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);">
+                        <i id="radioDefaultIcon" class="far fa-square" style="font-size: 18px; color: #b0b0b0;"></i>
+                        <span style="font-size: 13px; font-weight: 500;">默认封面</span>
+                    </div>
+                    <div id="radioChip" style="flex: 1; display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(240,240,245,0.6); border: 2px solid var(--border-color); cursor: pointer; box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);">
+                        <i id="radioChipIcon" class="far fa-square" style="font-size: 18px; color: #b0b0b0;"></i>
+                        <span style="font-size: 13px; font-weight: 500;">芯片封面</span>
+                    </div>
+                </div>
+                <div id="radioCustom" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(240,240,245,0.6); border: 2px solid var(--border-color); cursor: pointer; box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);">
+                    <i id="radioCustomIcon" class="far fa-square" style="font-size: 18px; color: #b0b0b0;"></i>
+                    <span style="font-size: 13px; font-weight: 500;">自定义封面</span>
+                    <span id="radioCustomStatus" style="font-size: 12px; color: var(--text-light); margin-left: auto; display: none;"></span>
+                </div>
+                <input type="file" id="coverInp" accept="image/*" style="display: none;">
+            </div>
+
+            <div id="progressWrap" style="display: none; margin-bottom: 10px; width: 100%; height: 24px; background: rgba(240,240,245,0.8); border: 2px solid var(--border-color); border-radius: 0; overflow: hidden; position: relative; box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);">
+                <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary-color), #8e54e9); transition: width 0.2s;"></div>
+                <div id="progressText" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--text-color);">0%</div>
+            </div>
+            <button class="btn btn-primary" id="genBtn" style="width: 100%;">
+                <i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载
+            </button>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+
+var TPL_TEXT, VIDEO_TPL, META_TEXT, WCHARS;
+
+var pickBtn = document.getElementById('pickBtn');
+var fileInp = document.getElementById('fileInp');
+var preview = document.getElementById('preview');
+var ph = document.getElementById('ph');
+var wInp = document.getElementById('wInp');
+var hInp = document.getElementById('hInp');
+var nameInp = document.getElementById('nameInp');
+var genBtn = document.getElementById('genBtn');
+var modeToggle = document.getElementById('modeToggle');
+var progressWrap = document.getElementById('progressWrap');
+var progressBar = document.getElementById('progressBar');
+var progressText = document.getElementById('progressText');
+
+var radioDefault = document.getElementById('radioDefault');
+var radioChip = document.getElementById('radioChip');
+var radioCustom = document.getElementById('radioCustom');
+var radioCustomStatus = document.getElementById('radioCustomStatus');
+var coverInp = document.getElementById('coverInp');
+
+var currentFile = null;
+var videoMode = false;
+var selectedCoverType = 0;
+var customCoverFile = null;
+var VIDEO_ICON = null;
+var CHIP_ICON = null;
+
+var radioIcons = {
+    default: document.getElementById('radioDefaultIcon'),
+    chip: document.getElementById('radioChipIcon'),
+    custom: document.getElementById('radioCustomIcon')
+};
+
+function radioIcon(el, on){
+    el.className = on ? 'fas fa-square-check' : 'far fa-square';
+    el.style.color = on ? '#2ecc71' : '#b0b0b0';
+}
+
+function updateRadioUI(){
+    radioIcon(radioIcons.default, selectedCoverType === 0);
+    radioIcon(radioIcons.chip, selectedCoverType === 1);
+    radioIcon(radioIcons.custom, selectedCoverType === 2);
+}
+
+radioDefault.onclick = function(){
+    selectedCoverType = 0;
+    customCoverFile = null;
+    radioCustomStatus.style.display = 'none';
+    updateRadioUI();
+};
+
+radioChip.onclick = function(){
+    selectedCoverType = 1;
+    customCoverFile = null;
+    radioCustomStatus.style.display = 'none';
+    updateRadioUI();
+};
+
+radioCustom.onclick = function(){
+    coverInp.click();
+};
+
+coverInp.onchange = function(){
+    var f = coverInp.files && coverInp.files[0];
+    if(!f) return;
+    customCoverFile = f;
+    selectedCoverType = 2;
+    radioCustomStatus.textContent = '已选择:' + (f.name.length > 16 ? f.name.substring(0, 14) + '..' : f.name);
+    radioCustomStatus.style.display = 'inline';
+    updateRadioUI();
+};
+
+pickBtn.onclick = function(){ fileInp.click(); };
+
+modeToggle.onclick = function(){
+    videoMode = !videoMode;
+    currentFile = null;
+    customCoverFile = null;
+    selectedCoverType = 0;
+    radioCustomStatus.style.display = 'none';
+    updateRadioUI();
+    preview.style.display = 'none';
+    ph.style.display = 'block';
+    ph.innerHTML = '<i class="fas fa-image" style="font-size: 38px; display: block; margin-bottom: 8px;"></i><span style="font-size: 13px;">尚未选择图片</span>';
+    fileInp.value = '';
+    coverInp.value = '';
+    if(videoMode){
+        modeToggle.innerHTML = '<i class="fas fa-image"></i> 图片转换';
+        fileInp.accept = 'video/*';
+        pickBtn.innerHTML = '<i class="fas fa-folder-open"></i> 选择视频';
+        wInp.value = '32';
+        hInp.value = '32';
+        ph.innerHTML = '<i class="fas fa-video" style="font-size: 38px; display: block; margin-bottom: 8px;"></i><span style="font-size: 13px;">尚未选择视频</span>';
+    } else {
+        modeToggle.innerHTML = '<i class="fas fa-video"></i> 视频转换';
+        fileInp.accept = 'image/*';
+        pickBtn.innerHTML = '<i class="fas fa-folder-open"></i> 选择图片';
+        wInp.value = '64';
+        hInp.value = '64';
+    }
+};
+
+fileInp.onchange = function(){
+    var f = fileInp.files && fileInp.files[0];
+    if(!f) return;
+    currentFile = f;
+    if(videoMode && f.type.indexOf('video/') === 0){
+        var video = document.createElement('video');
+        video.preload = 'auto';
+        video.muted = true;
+        var url = URL.createObjectURL(f);
+        video.onloadedmetadata = function(){
+            video.currentTime = 0;
+        };
+        video.onseeked = function(){
+            var cv = document.createElement('canvas');
+            var vw = video.videoWidth;
+            var vh = video.videoHeight;
+            var scale = Math.min(1, 480 / Math.max(vw, vh));
+            cv.width = Math.max(1, Math.round(vw * scale));
+            cv.height = Math.max(1, Math.round(vh * scale));
+            cv.getContext('2d').drawImage(video, 0, 0, cv.width, cv.height);
+            preview.src = cv.toDataURL('image/png');
+            preview.style.display = 'block';
+            ph.style.display = 'none';
+            URL.revokeObjectURL(url);
+        };
+        video.src = url;
+        video.load();
+    } else {
+        var rd = new FileReader();
+        rd.onload = function(e){
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            ph.style.display = 'none';
+        };
+        rd.readAsDataURL(f);
+    }
+};
+
+function readSize(inp){
+    var v = parseInt(inp.value, 10);
+    if(isNaN(v) || v < 1 || v > 256){
+        inp.style.borderColor = 'var(--danger-color)';
+        inp.style.background = 'rgba(214,48,49,0.1)';
+        return null;
+    }
+    inp.style.borderColor = 'var(--border-color)';
+    inp.style.background = 'rgba(240,240,245,0.8)';
+    return v;
+}
+wInp.oninput = function(){ readSize(wInp); };
+hInp.oninput = function(){ readSize(hInp); };
+
+function round4(v){ return Math.round(v / 255 * 10000) / 10000; }
+
+function makePixelArray(w, h, data){
+    var arr = [];
+    for(var row = 0; row < h; row++){
+        for(var col = 0; col < w; col++){
+            var i = (row * w + col) * 4;
+            arr.push({
+                x: round4(data[i]),
+                y: round4(data[i+1]),
+                z: round4(data[i+2]),
+                w: round4(data[i+3]),
+                magnitude: 0.0,
+                sqrMagnitude: 0.0
+            });
+        }
+    }
+    return JSON.stringify(arr);
+}
+
+function showProgress(pct, txt){
+    progressWrap.style.display = 'block';
+    progressBar.style.width = pct + '%';
+    progressText.textContent = txt || pct + '%';
+}
+
+function hideProgress(){
+    progressWrap.style.display = 'none';
+    progressBar.style.width = '0%';
+}
+
+function pixelToChar(pixel){
+    var r = (pixel >> 16) & 0xFF;
+    var g = (pixel >> 8) & 0xFF;
+    var b = pixel & 0xFF;
+    var rq = Math.floor((r * 15 + 127) / 255);
+    var gq = Math.floor((g * 15 + 127) / 255);
+    var bq = Math.floor((b * 15 + 127) / 255);
+    var idx = rq + gq * 16 + bq * 256;
+    return idx < WCHARS.length ? WCHARS[idx] : '\u4e00';
+}
+
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+function canvasToIconBytes(cv){
+    return new Promise(function(r){
+        cv.toBlob(function(blob){
+            var fr = new FileReader();
+            fr.onload = function(){ r(new Uint8Array(fr.result)); };
+            fr.readAsArrayBuffer(blob);
+        }, 'image/png');
+    });
+}
+
+function loadImageBitmap(file){
+    return new Promise(function(resolve, reject){
+        var img = new Image();
+        img.onload = function(){ resolve(img); };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+function bufToIconBytes(buf){
+    return new Uint8Array(buf);
+}
+
+async function getIconBytes(srcCv){
+    if(selectedCoverType === 2 && customCoverFile){
+        try {
+            var bmp = await loadImageBitmap(customCoverFile);
+            var c = document.createElement('canvas');
+            c.width = 64; c.height = 64;
+            c.getContext('2d').drawImage(bmp, 0, 0, 64, 64);
+            return await canvasToIconBytes(c);
+        } catch(e){}
+    }
+    if(selectedCoverType === 1){
+        var buf = videoMode ? VIDEO_ICON : CHIP_ICON;
+        if(buf) return bufToIconBytes(buf);
+    }
+    if(srcCv){
+        var c = document.createElement('canvas');
+        c.width = 64; c.height = 64;
+        c.getContext('2d').drawImage(srcCv, 0, 0, 64, 64);
+        return await canvasToIconBytes(c);
+    }
+    var c = document.createElement('canvas');
+    c.width = 64; c.height = 64;
+    return await canvasToIconBytes(c);
+}
+
+function getOutputName(){
+    var n = (nameInp.value || '').trim();
+    if(n) return n + '.melsave';
+    return randomName() + '.melsave';
+}
+
+function finishCommon(blob){
+    var name = getOutputName();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    showMessage('\u82af\u7247\u5df2\u751f\u6210', 'success');
+    genBtn.disabled = false;
+    genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+}
+
+genBtn.onclick = function(){
+    if(!currentFile){ showMessage(videoMode ? '\u8bf7\u5148\u9009\u62e9\u89c6\u9891' : '\u8bf7\u5148\u9009\u62e9\u56fe\u7247', 'danger'); return; }
+    var w = readSize(wInp), h = readSize(hInp);
+    if(w === null || h === null){ showMessage('\u5c3a\u5bf8\u8303\u56f4: 1 ~ 256', 'danger'); return; }
+    genBtn.disabled = true;
+    if(videoMode && currentFile.type.indexOf('video/') === 0){
+        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> \u8f6c\u6362\u4e2d...';
+        convertVideo(w, h);
+    } else {
+        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> \u751f\u6210\u4e2d...';
+        convertImage(w, h);
+    }
+};
+
+function convertImage(w, h){
+    var img = new Image();
+    var objUrl = URL.createObjectURL(currentFile);
+    img.onload = async function(){
+        try {
+            URL.revokeObjectURL(objUrl);
+            var cv = document.createElement('canvas');
+            cv.width = w; cv.height = h;
+            var ctx = cv.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            var pixels = ctx.getImageData(0, 0, w, h).data;
+            var pixelJson = makePixelArray(w, h, pixels);
+
+            var data = JSON.parse(TPL_TEXT);
+            var sms = data.saveObjectContainers[0].saveObjects.saveMetaDatas;
+            for(var s = 0; s < sms.length; s++){
+                if(sms[s].key === 'chip_graph'){
+                    var graph = JSON.parse(sms[s].stringValue);
+                    var nodes = graph.Nodes;
+                    for(var n = 0; n < nodes.length; n++){
+                        var node = nodes[n];
+                        if(node.GateDataType === 512 && node.SaveData != null){
+                            var sd = JSON.parse(node.SaveData);
+                            sd.DataValue = pixelJson;
+                            node.SaveData = JSON.stringify(sd);
+                        }
+                    }
+                    sms[s].stringValue = JSON.stringify(graph);
+                }
+            }
+            var finalData = JSON.stringify(data);
+
+            var iconBytes = await getIconBytes(cv);
+            var zip = new JSZip();
+            zip.file('Icon', iconBytes);
+            zip.file('MetaData', META_TEXT);
+            zip.file('Data', finalData);
+            zip.generateAsync({type: 'blob', compression: 'STORE', mimeType: 'application/octet-stream'}).then(function(blob){
+                finishCommon(blob);
+            }).catch(function(e){
+                showMessage('\u6253\u5305\u5931\u8d25: ' + e.message, 'danger');
+                genBtn.disabled = false;
+                genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+            });
+        } catch(err){
+            showMessage('\u751f\u6210\u5931\u8d25: ' + err.message, 'danger');
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        }
+    };
+    img.onerror = function(){
+        URL.revokeObjectURL(objUrl);
+        showMessage('\u65e0\u6cd5\u89e3\u7801\u56fe\u7247', 'danger');
+        genBtn.disabled = false;
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+    };
+    img.src = objUrl;
+}
+
+async function convertVideo(w, h){
+    showProgress(0, '\u51c6\u5907\u4e2d...');
+    var video = document.createElement('video');
+    video.preload = 'auto';
+    video.muted = true;
+    var blobUrl = URL.createObjectURL(currentFile);
+    video.src = blobUrl;
+    try {
+        await new Promise(function(r, j){ video.onloadedmetadata = r; video.onerror = j; });
+    } catch(e){
+        showMessage('\u65e0\u6cd5\u8bfb\u53d6\u89c6\u9891', 'danger');
+        genBtn.disabled = false;
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        hideProgress();
+        URL.revokeObjectURL(blobUrl);
+        return;
+    }
+    var durationMs = video.duration * 1000;
+    var frameStepMs = 100;
+    var frameCount = Math.floor(durationMs / frameStepMs) + 1;
+    if(frameCount > 5000){
+        showMessage('\u89c6\u9891\u8fc7\u957f\uff0c\u8bf7\u88c1\u526a\u540e\u91cd\u8bd5', 'danger');
+        genBtn.disabled = false;
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        hideProgress();
+        URL.revokeObjectURL(blobUrl);
+        return;
+    }
+    var frameDataLen = w * h;
+    showProgress(5, '\u6b63\u5728\u89e3\u7801\u89c6\u9891\u5e27...');
+    var frameData = '';
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+    for(var i = 0; i < frameCount; i++){
+        video.currentTime = i * frameStepMs / 1000;
+        await new Promise(function(r){ video.onseeked = r; setTimeout(r, 5000); });
+        ctx.drawImage(video, 0, 0, w, h);
+        var imageData = ctx.getImageData(0, 0, w, h);
+        var d = imageData.data;
+        for(var p = 0; p < frameDataLen; p++){
+            var o = p * 4;
+            frameData += pixelToChar(((d[o] << 16) | (d[o + 1] << 8) | d[o + 2]) >>> 0);
+        }
+        var pct = 5 + Math.floor((i + 1) / frameCount * 87);
+        showProgress(pct, '\u5e27 ' + (i + 1) + '/' + frameCount);
+        if(i % 5 === 0) await sleep(0);
+    }
+    showProgress(93, '\u6b63\u5728\u5199\u5165\u6587\u4ef6...');
+    var modifiedJson = VIDEO_TPL.split('\u6bcf\u5e27\u6570\u636e\u957f\u5ea6').join(String(frameDataLen)).split('\u5e27\u6570\u636e').join(frameData);
+    var iconBytes = await getIconBytes(c);
+    var zip = new JSZip();
+    zip.file('Icon', iconBytes);
+    zip.file('MetaData', META_TEXT);
+    zip.file('Data', modifiedJson);
+    showProgress(95, '\u6b63\u5728\u538b\u7f29...');
+    var blob = await zip.generateAsync({type: 'blob', compression: 'DEFLATE'}, function(m){
+        showProgress(95 + Math.floor(m.percent * 0.05), '\u538b\u7f29\u4e2d...');
+    });
+    showProgress(100, '\u8f6c\u6362\u5b8c\u6210');
+    finishCommon(blob);
+    setTimeout(hideProgress, 2000);
+    URL.revokeObjectURL(blobUrl);
+}
+
+function randomName(){
+    var s = '';
+    var c = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    for(var i = 0; i < 8; i++) s += c.charAt(Math.floor(Math.random() * c.length));
+    return s;
+}
+
+function showMessage(message, type) {
+    var el = document.createElement('div');
+    el.className = 'message message-' + type;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(function(){
+        el.style.opacity = '0';
+        setTimeout(function(){ el.remove(); }, 300);
+    }, 3000);
+}
+
+updateRadioUI();
+
+(async function(){
+    try {
+        var r1 = await fetch('assets/template_ungraph.json');
+        TPL_TEXT = await r1.text();
+    } catch(e){ TPL_TEXT = '{}'; }
+    try {
+        var r2 = await fetch('assets/template_video.json');
+        VIDEO_TPL = await r2.text();
+    } catch(e){ VIDEO_TPL = ''; }
+    try {
+        var r3 = await fetch('assets/MetaData.json');
+        META_TEXT = await r3.text();
+    } catch(e){ META_TEXT = '{}'; }
+    try {
+        var r4 = await fetch('assets/wchars.txt');
+        WCHARS = await r4.text();
+    } catch(e){ WCHARS = ''; }
+})();
+
+(async function(){
+    try {
+        var r1 = await fetch('assets/video_icon.png');
+        VIDEO_ICON = await r1.arrayBuffer();
+    } catch(e){}
+    try {
+        var r2 = await fetch('assets/chip_icon.png');
+        CHIP_ICON = await r2.arrayBuffer();
+    } catch(e){}
+})();
+})();
+</script>
+</body>
+</html>
