@@ -112,6 +112,24 @@ h2 i { font-size: 1.1rem; color: var(--primary-color); }
     from { opacity: 0; transform: translate(-50%, -20px); }
     to { opacity: 1; transform: translate(-50%, 0); }
 }
+#coverRatioBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    font-size: 13px;
+    width: 100%;
+    background: rgba(240,240,245,0.6);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);
+    user-select: none;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+#coverRatioBtn:active {
+    transform: translate(2px,2px);
+    box-shadow: none;
+}
 </style>
 </head>
 <body>
@@ -163,6 +181,12 @@ h2 i { font-size: 1.1rem; color: var(--primary-color); }
                 </div>
             </div>
 
+            <div id="fpsWrap" style="margin-bottom: 14px; display: none;">
+                <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">FPS</label>
+                <input type="number" id="fpsInp" value="10" placeholder="10" min="1" max="120" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+                <div style="font-size: 11px; color: var(--text-light); margin-top: 3px; text-align: center;">1 ~ 120</div>
+            </div>
+
             <div style="margin-bottom: 14px;">
                 <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">自定义文件名</label>
                 <input type="text" id="nameInp" placeholder="留空自动生成" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
@@ -186,6 +210,19 @@ h2 i { font-size: 1.1rem; color: var(--primary-color); }
                     <span id="radioCustomStatus" style="font-size: 12px; color: var(--text-light); margin-left: auto; display: none;"></span>
                 </div>
                 <input type="file" id="coverInp" accept="image/*" style="display: none;">
+                <div id="customCoverSize" style="display: none; margin-top: 10px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">封面宽度</label>
+                            <input type="number" id="coverWInp" min="1" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 12px; color: var(--text-light); margin-bottom: 3px; font-weight: 500;">封面高度</label>
+                            <input type="number" id="coverHInp" min="1" style="width: 100%; padding: 10px; background: rgba(240, 240, 245, 0.8); border: 2px solid var(--border-color); border-radius: 0; font-size: 15px; outline: none; transition: border 0.15s; text-align: center; font-weight: 500; color: var(--text-color); box-shadow: 2px 2px 0px 0px rgba(90, 75, 214, 0.85);">
+                        </div>
+                    </div>
+                    <div id="coverRatioBtn">调整原比例</div>
+                </div>
             </div>
 
             <div id="progressWrap" style="display: none; margin-bottom: 10px; width: 100%; height: 24px; background: rgba(240,240,245,0.8); border: 2px solid var(--border-color); border-radius: 0; overflow: hidden; position: relative; box-shadow: 2px 2px 0px 0px rgba(90,75,214,0.85);">
@@ -214,6 +251,8 @@ var ph = document.getElementById('ph');
 var wInp = document.getElementById('wInp');
 var hInp = document.getElementById('hInp');
 var nameInp = document.getElementById('nameInp');
+var fpsInp = document.getElementById('fpsInp');
+var fpsWrap = document.getElementById('fpsWrap');
 var genBtn = document.getElementById('genBtn');
 var modeToggle = document.getElementById('modeToggle');
 var progressWrap = document.getElementById('progressWrap');
@@ -225,6 +264,10 @@ var radioChip = document.getElementById('radioChip');
 var radioCustom = document.getElementById('radioCustom');
 var radioCustomStatus = document.getElementById('radioCustomStatus');
 var coverInp = document.getElementById('coverInp');
+var customCoverSize = document.getElementById('customCoverSize');
+var coverWInp = document.getElementById('coverWInp');
+var coverHInp = document.getElementById('coverHInp');
+var coverRatioBtn = document.getElementById('coverRatioBtn');
 
 var currentFile = null;
 var videoMode = false;
@@ -254,6 +297,7 @@ radioDefault.onclick = function(){
     selectedCoverType = 0;
     customCoverFile = null;
     radioCustomStatus.style.display = 'none';
+    customCoverSize.style.display = 'none';
     updateRadioUI();
 };
 
@@ -261,6 +305,7 @@ radioChip.onclick = function(){
     selectedCoverType = 1;
     customCoverFile = null;
     radioCustomStatus.style.display = 'none';
+    customCoverSize.style.display = 'none';
     updateRadioUI();
 };
 
@@ -275,7 +320,28 @@ coverInp.onchange = function(){
     selectedCoverType = 2;
     radioCustomStatus.textContent = '已选择:' + (f.name.length > 16 ? f.name.substring(0, 14) + '..' : f.name);
     radioCustomStatus.style.display = 'inline';
+    var bmp = new Image();
+    bmp.onload = function(){
+        coverWInp.value = bmp.width;
+        coverHInp.value = bmp.height;
+        readCoverSize(coverWInp);
+        readCoverSize(coverHInp);
+    };
+    bmp.src = URL.createObjectURL(f);
+    customCoverSize.style.display = 'block';
     updateRadioUI();
+};
+
+coverRatioBtn.onclick = function(){
+    if(!customCoverFile) return;
+    var bmp = new Image();
+    bmp.onload = function(){
+        coverWInp.value = bmp.width;
+        coverHInp.value = bmp.height;
+        readCoverSize(coverWInp);
+        readCoverSize(coverHInp);
+    };
+    bmp.src = URL.createObjectURL(customCoverFile);
 };
 
 pickBtn.onclick = function(){ fileInp.click(); };
@@ -286,6 +352,7 @@ modeToggle.onclick = function(){
     customCoverFile = null;
     selectedCoverType = 0;
     radioCustomStatus.style.display = 'none';
+    customCoverSize.style.display = 'none';
     updateRadioUI();
     preview.style.display = 'none';
     ph.style.display = 'block';
@@ -298,6 +365,7 @@ modeToggle.onclick = function(){
         pickBtn.innerHTML = '<i class="fas fa-folder-open"></i> 选择视频';
         wInp.value = '32';
         hInp.value = '32';
+        fpsWrap.style.display = 'block';
         ph.innerHTML = '<i class="fas fa-video" style="font-size: 38px; display: block; margin-bottom: 8px;"></i><span style="font-size: 13px;">尚未选择视频</span>';
     } else {
         modeToggle.innerHTML = '<i class="fas fa-video"></i> 视频转换';
@@ -305,6 +373,7 @@ modeToggle.onclick = function(){
         pickBtn.innerHTML = '<i class="fas fa-folder-open"></i> 选择图片';
         wInp.value = '64';
         hInp.value = '64';
+        fpsWrap.style.display = 'none';
     }
 };
 
@@ -360,6 +429,33 @@ function readSize(inp){
 wInp.oninput = function(){ readSize(wInp); };
 hInp.oninput = function(){ readSize(hInp); };
 
+function readFps(inp){
+    var v = parseInt(inp.value, 10);
+    if(isNaN(v) || v < 1 || v > 120){
+        inp.style.borderColor = 'var(--danger-color)';
+        inp.style.background = 'rgba(214,48,49,0.1)';
+        return null;
+    }
+    inp.style.borderColor = 'var(--border-color)';
+    inp.style.background = 'rgba(240,240,245,0.8)';
+    return v;
+}
+fpsInp.oninput = function(){ readFps(this); };
+
+function readCoverSize(inp){
+    var v = parseInt(inp.value, 10);
+    if(isNaN(v) || v < 1){
+        inp.style.borderColor = 'var(--danger-color)';
+        inp.style.background = 'rgba(214,48,49,0.1)';
+        return null;
+    }
+    inp.style.borderColor = 'var(--border-color)';
+    inp.style.background = 'rgba(240,240,245,0.8)';
+    return v;
+}
+coverWInp.oninput = function(){ readCoverSize(this); };
+coverHInp.oninput = function(){ readCoverSize(this); };
+
 function round4(v){ return Math.round(v / 255 * 10000) / 10000; }
 
 function makePixelArray(w, h, data){
@@ -399,7 +495,7 @@ function pixelToChar(pixel){
     var gq = Math.floor((g * 15 + 127) / 255);
     var bq = Math.floor((b * 15 + 127) / 255);
     var idx = rq + gq * 16 + bq * 256;
-    return idx < WCHARS.length ? WCHARS[idx] : '\u4e00';
+    return idx < WCHARS.length ? WCHARS[idx] : '一';
 }
 
 function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
@@ -432,8 +528,12 @@ async function getIconBytes(srcCv){
         try {
             var bmp = await loadImageBitmap(customCoverFile);
             var c = document.createElement('canvas');
-            c.width = 64; c.height = 64;
-            c.getContext('2d').drawImage(bmp, 0, 0, 64, 64);
+            var cw = parseInt(coverWInp.value, 10);
+            var ch = parseInt(coverHInp.value, 10);
+            if(isNaN(cw) || cw < 1) cw = bmp.width;
+            if(isNaN(ch) || ch < 1) ch = bmp.height;
+            c.width = cw; c.height = ch;
+            c.getContext('2d').drawImage(bmp, 0, 0, cw, ch);
             return await canvasToIconBytes(c);
         } catch(e){}
     }
@@ -469,21 +569,33 @@ function finishCommon(blob){
     a.click();
     document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
-    showMessage('\u82af\u7247\u5df2\u751f\u6210', 'success');
+    showMessage('芯片已生成', 'success');
     genBtn.disabled = false;
-    genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+    genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
 }
 
 genBtn.onclick = function(){
-    if(!currentFile){ showMessage(videoMode ? '\u8bf7\u5148\u9009\u62e9\u89c6\u9891' : '\u8bf7\u5148\u9009\u62e9\u56fe\u7247', 'danger'); return; }
+    if(!currentFile){ showMessage(videoMode ? '请先选择视频' : '请先选择图片', 'danger'); return; }
     var w = readSize(wInp), h = readSize(hInp);
-    if(w === null || h === null){ showMessage('\u5c3a\u5bf8\u8303\u56f4: 1 ~ 256', 'danger'); return; }
+    if(w === null || h === null){ showMessage('尺寸范围: 1 ~ 256', 'danger'); return; }
+    if(selectedCoverType === 2){
+        var cw = readCoverSize(coverWInp);
+        var ch = readCoverSize(coverHInp);
+        if(cw === null || ch === null){ showMessage('封面尺寸必须为大于0的数字', 'danger'); return; }
+    }
     genBtn.disabled = true;
     if(videoMode && currentFile.type.indexOf('video/') === 0){
-        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> \u8f6c\u6362\u4e2d...';
-        convertVideo(w, h);
+        var fps = readFps(fpsInp);
+        if(fps === null){
+            showMessage('FPS范围: 1 ~ 120', 'danger');
+            genBtn.disabled = false;
+            genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
+            return;
+        }
+        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 转换中...';
+        convertVideo(w, h, fps);
     } else {
-        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> \u751f\u6210\u4e2d...';
+        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
         convertImage(w, h);
     }
 };
@@ -528,27 +640,27 @@ function convertImage(w, h){
             zip.generateAsync({type: 'blob', compression: 'STORE', mimeType: 'application/octet-stream'}).then(function(blob){
                 finishCommon(blob);
             }).catch(function(e){
-                showMessage('\u6253\u5305\u5931\u8d25: ' + e.message, 'danger');
+                showMessage('打包失败: ' + e.message, 'danger');
                 genBtn.disabled = false;
-                genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+                genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
             });
         } catch(err){
-            showMessage('\u751f\u6210\u5931\u8d25: ' + err.message, 'danger');
+            showMessage('生成失败: ' + err.message, 'danger');
             genBtn.disabled = false;
-            genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+            genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
         }
     };
     img.onerror = function(){
         URL.revokeObjectURL(objUrl);
-        showMessage('\u65e0\u6cd5\u89e3\u7801\u56fe\u7247', 'danger');
+        showMessage('无法解码图片', 'danger');
         genBtn.disabled = false;
-        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
     };
     img.src = objUrl;
 }
 
-async function convertVideo(w, h){
-    showProgress(0, '\u51c6\u5907\u4e2d...');
+async function convertVideo(w, h, fps){
+    showProgress(0, '准备中...');
     var video = document.createElement('video');
     video.preload = 'auto';
     video.muted = true;
@@ -557,26 +669,26 @@ async function convertVideo(w, h){
     try {
         await new Promise(function(r, j){ video.onloadedmetadata = r; video.onerror = j; });
     } catch(e){
-        showMessage('\u65e0\u6cd5\u8bfb\u53d6\u89c6\u9891', 'danger');
+        showMessage('无法读取视频', 'danger');
         genBtn.disabled = false;
-        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
         hideProgress();
         URL.revokeObjectURL(blobUrl);
         return;
     }
     var durationMs = video.duration * 1000;
-    var frameStepMs = 100;
+    var frameStepMs = 1000 / fps;
     var frameCount = Math.floor(durationMs / frameStepMs) + 1;
     if(frameCount > 5000){
-        showMessage('\u89c6\u9891\u8fc7\u957f\uff0c\u8bf7\u88c1\u526a\u540e\u91cd\u8bd5', 'danger');
+        showMessage('视频过长，请裁剪后重试', 'danger');
         genBtn.disabled = false;
-        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> \u751f\u6210\u82af\u7247\u5e76\u4e0b\u8f7d';
+        genBtn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> 生成芯片并下载';
         hideProgress();
         URL.revokeObjectURL(blobUrl);
         return;
     }
     var frameDataLen = w * h;
-    showProgress(5, '\u6b63\u5728\u89e3\u7801\u89c6\u9891\u5e27...');
+    showProgress(5, '正在解码视频帧...');
     var frameData = '';
     var c = document.createElement('canvas');
     c.width = w; c.height = h;
@@ -592,21 +704,21 @@ async function convertVideo(w, h){
             frameData += pixelToChar(((d[o] << 16) | (d[o + 1] << 8) | d[o + 2]) >>> 0);
         }
         var pct = 5 + Math.floor((i + 1) / frameCount * 87);
-        showProgress(pct, '\u5e27 ' + (i + 1) + '/' + frameCount);
+        showProgress(pct, '帧 ' + (i + 1) + '/' + frameCount);
         if(i % 5 === 0) await sleep(0);
     }
-    showProgress(93, '\u6b63\u5728\u5199\u5165\u6587\u4ef6...');
-    var modifiedJson = VIDEO_TPL.split('\u6bcf\u5e27\u6570\u636e\u957f\u5ea6').join(String(frameDataLen)).split('\u5e27\u6570\u636e').join(frameData);
+    showProgress(93, '正在写入文件...');
+    var modifiedJson = VIDEO_TPL.split('每帧数据长度').join(String(frameDataLen)).split('帧数据').join(frameData);
     var iconBytes = await getIconBytes(c);
     var zip = new JSZip();
     zip.file('Icon', iconBytes);
     zip.file('MetaData', META_TEXT);
     zip.file('Data', modifiedJson);
-    showProgress(95, '\u6b63\u5728\u538b\u7f29...');
+    showProgress(95, '正在压缩...');
     var blob = await zip.generateAsync({type: 'blob', compression: 'DEFLATE'}, function(m){
-        showProgress(95 + Math.floor(m.percent * 0.05), '\u538b\u7f29\u4e2d...');
+        showProgress(95 + Math.floor(m.percent * 0.05), '压缩中...');
     });
-    showProgress(100, '\u8f6c\u6362\u5b8c\u6210');
+    showProgress(100, '转换完成');
     finishCommon(blob);
     setTimeout(hideProgress, 2000);
     URL.revokeObjectURL(blobUrl);
